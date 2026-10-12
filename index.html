@@ -44,7 +44,7 @@
     </div>
 
     <div id="icq-room">
-        <div class="bubble sys-msg"><b>[Система]</b> Аська готова. Настройте Контуры вверху, вставьте ключ OpenRouter и запустите дискуссию.</div>
+        <div class="bubble sys-msg"><b>[Система]</b> Аська готова. Настройте Контуры вверху, вставьте ключ OpenRouter и запустите дискуссию. Терминал не требуется.</div>
     </div>
 
     <div id="icq-controls">
@@ -60,7 +60,6 @@
 
         let roomHistory = [{ role: "system", content: systemPrompt }];
 
-        // Функция жесткого программного цензурирования слов-маркеров
         function censor(text) {
             const forbidden = ["симулякр", "рентгеном", "ландшафта", "трансграничной", "купеческого паритета", "на берегу"];
             let result = text;
@@ -89,12 +88,12 @@
 
         async function askModel(key, modelName) {
             try {
-                const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                // Адаптировано под запуск с ПК без локального веб-сервера
+                const response = await fetch("https://openrouter.ai", {
                     method: "POST",
                     headers: {
                         "Authorization": `Bearer ${key}`,
                         "Content-Type": "application/json",
-                        "HTTP-Referer": "http://localhost:8000",
                         "X-Title": "ICQ Multi-AI Room"
                     },
                     body: JSON.stringify({
@@ -138,11 +137,9 @@
             document.getElementById('icq-input').value = '';
             sendBtn.disabled = true;
 
-            // 1. Реплика Принципала
             appendBubble('🟢 Александр Серикович', 'principal', text);
             roomHistory.push({ role: "user", content: `[Александр Серикович]: ${text}` });
 
-            // 2. Включаем Контур А
             const labelA = modelA.split('/')[1]?.split(':')[0] || 'AI-A';
             const bubbleA = appendBubble(`🤖 Контур А (${labelA})`, 'ai-gemini', "...обдумывает...");
             
@@ -151,7 +148,6 @@
             updateBubble(bubbleA, replyA);
             roomHistory.push({ role: "assistant", content: `[${labelA}]: ${replyA}` });
 
-            // 3. Включаем Контур Б
             const labelB = modelB.split('/')[1]?.split(':')[0] || 'AI-B';
             const bubbleB = appendBubble(`🤖 Контур Б (${labelB})`, 'ai-llama', "...анализирует дискуссию...");
             
@@ -163,7 +159,6 @@
             sendBtn.disabled = false;
         }
 
-        // Слушатель клавиатуры
         document.getElementById('icq-input').addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
