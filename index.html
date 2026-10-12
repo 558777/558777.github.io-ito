@@ -28,7 +28,7 @@
     </div>
 
     <div id="icq-room">
-        <div class="bubble ai-gemini" style="border: none; background: transparent;"><b>[Система]</b> Аська запустилась в штатном режиме. Все модели ИИ вошли в комнату. Введите ваш ключ вверху и отправьте первую тему.</div>
+        <div class="bubble ai-gemini" style="border: none; background: transparent;"><b>[Система]</b> Аська запущена. Контур А (Gemini) и Контур Б (Llama) вошли в комнату. Введите ваш ключ доступа OpenRouter вверху и отправьте первую тему.</div>
     </div>
 
     <div id="icq-controls">
@@ -49,14 +49,17 @@
 
             document.getElementById('icq-input').value = '';
             
+            // 1. Публикация реплики Принципала в общую комнату
             appendBubble('🟢 Александр Серикович', 'principal', text);
             roomHistory.push({ role: "user", content: `[Александр Серикович]: ${text}` });
 
+            // 2. Включаем Контур А (Gemini 2.5)
             appendBubble('🤖 Контур А (Gemini)', 'ai-gemini', "...обдумывает задачу...");
             const replyGemini = await askModel(key, "google/gemini-2.5-flash");
             updateLastBubble('🤖 Контур А (Gemini)', 'ai-gemini', replyGemini);
             roomHistory.push({ role: "assistant", content: `[Gemini]: ${replyGemini}` });
 
+            // 3. Включаем Контур Б (Llama 3), передавая ему контекст, включая ответ Gemini
             appendBubble('🤖 Контур Б (Llama)', 'ai-llama', "...анализирует реплику Gemini...");
             const replyLlama = await askModel(key, "meta-llama/llama-3-8b-instruct:free");
             updateLastBubble('🤖 Контур Б (Llama)', 'ai-llama', replyLlama);
@@ -89,8 +92,8 @@
                     body: JSON.stringify({ model: modelName, messages: roomHistory })
                 });
                 const data = await response.json();
-                if (data.choices && data.choices[0] && data.choices[0].message) {
-                    return data.choices[0].message.content;
+                if (data.choices && data.choices.message && data.choices.message.content) {
+                    return data.choices.message.content.strip || data.choices.message.content;
                 }
                 return "...молчание в эфире (неверный формат данных)...";
             } catch (e) {
