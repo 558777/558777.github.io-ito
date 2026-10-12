@@ -83,14 +83,15 @@
 
         async function askModel(key, modelName) {
             try {
+                // Полный рабочий путь к асинхронному шлюзу
                 const response = await fetch("https://vllm.site", {
                     method: "POST",
                     headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
                     body: JSON.stringify({ model: modelName, messages: roomHistory })
                 });
                 const data = await response.json();
-                if (data.choices && data.choices.message && data.choices.message.content) {
-                    return data.choices.message.content.trim();
+                if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+                    return data.choices[0].message.content.trim();
                 }
                 return "...молчание в эфире (неверная структура ответа шлюза)...";
             } catch (e) {
