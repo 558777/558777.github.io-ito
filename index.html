@@ -44,7 +44,7 @@
     </div>
 
     <div id="icq-room">
-        <div class="bubble sys-msg"><b>[Система]</b> Аська готова. Настройте Контуры вверху, вставьте ключ OpenRouter и запустите дискуссию. Терминал не требуется.</div>
+        <div class="bubble sys-msg"><b>[Система]</b> Аська готова. Настройте Контуры вверху, вставьте ключ OpenRouter и запустите дискуссию.</div>
     </div>
 
     <div id="icq-controls">
@@ -59,16 +59,6 @@
 спорь или дополняй их логику. Отвечай на русском языке.`;
 
         let roomHistory = [{ role: "system", content: systemPrompt }];
-
-        function censor(text) {
-            const forbidden = ["симулякр", "рентгеном", "ландшафта", "трансграничной", "купеческого паритета", "на берегу"];
-            let result = text;
-            forbidden.forEach(word => {
-                const re = new RegExp(word, 'gi');
-                result = result.replace(re, '...');
-            });
-            return result;
-        }
 
         function appendBubble(sender, className, text) {
             const room = document.getElementById('icq-room');
@@ -88,12 +78,12 @@
 
         async function askModel(key, modelName) {
             try {
-                // Адаптировано под запуск с ПК без локального веб-сервера
                 const response = await fetch("https://openrouter.ai", {
                     method: "POST",
                     headers: {
                         "Authorization": `Bearer ${key}`,
                         "Content-Type": "application/json",
+                        "HTTP-Referer": window.location.origin || "http://localhost",
                         "X-Title": "ICQ Multi-AI Room"
                     },
                     body: JSON.stringify({
@@ -110,10 +100,10 @@
                 }
 
                 const data = await response.json();
-                if (data && data.choices && data.choices[0] && data.choices[0].message) {
+                if (data.choices && data.choices[0] && data.choices[0].message) {
                     return data.choices[0].message.content.trim();
                 }
-                return `[Неизвестная структура JSON]: ${JSON.stringify(data).slice(0, 300)}`;
+                return `[Неизвестная структура]: ${JSON.stringify(data).slice(0, 300)}`;
             } catch (e) {
                 console.error("Fetch error:", e);
                 return `[Сбой сети: ${e.message}]`;
@@ -137,22 +127,23 @@
             document.getElementById('icq-input').value = '';
             sendBtn.disabled = true;
 
+            // 1. Реплика Принципала
             appendBubble('🟢 Александр Серикович', 'principal', text);
             roomHistory.push({ role: "user", content: `[Александр Серикович]: ${text}` });
 
+            // 2. Включаем Контур А (Ваш двойной split)
             const labelA = modelA.split('/')[1]?.split(':')[0] || 'AI-A';
             const bubbleA = appendBubble(`🤖 Контур А (${labelA})`, 'ai-gemini', "...обдумывает...");
             
-            let replyA = await askModel(key, modelA);
-            replyA = censor(replyA); 
+            const replyA = await askModel(key, modelA);
             updateBubble(bubbleA, replyA);
             roomHistory.push({ role: "assistant", content: `[${labelA}]: ${replyA}` });
 
+            // 3. Включаем Контур Б (Ваш двойной split)
             const labelB = modelB.split('/')[1]?.split(':')[0] || 'AI-B';
             const bubbleB = appendBubble(`🤖 Контур Б (${labelB})`, 'ai-llama', "...анализирует дискуссию...");
             
-            let replyB = await askModel(key, modelB);
-            replyB = censor(replyB);
+            const replyB = await askModel(key, modelB);
             updateBubble(bubbleB, replyB);
             roomHistory.push({ role: "assistant", content: `[${labelB}]: ${replyB}` });
 
