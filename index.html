@@ -30,19 +30,21 @@
         <span style="font-weight: bold; letter-spacing: 1px;">🟢 ICQ ROOM: ОБЩИЙ ЧАТ ИИ</span>
         <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
             <select id="select-model-a">
-                <option value="google/gemini-2.5-flash">Контур А: Gemini 2.5 Flash (Free)</option>
-                <option value="meta-llama/llama-3-8b-instruct:free">Контур А: Llama 3 8B (Free)</option>
+                <option value="google/gemini-2.0-flash-exp:free">Контур А: Gemini 2.0 Flash (Free)</option>
+                <option value="meta-llama/llama-3.1-8b-instruct:free">Контур А: Llama 3.1 8B (Free)</option>
+                <option value="qwen/qwen-2.5-72b-instruct:free">Контур А: Qwen 2.5 72B (Free)</option>
             </select>
             <select id="select-model-b">
                 <option value="meta-llama/llama-3.3-70b-instruct:free">Контур Б: Llama 3.3 70B (Free)</option>
-                <option value="google/gemini-2.5-flash">Контур Б: Gemini 2.5 Flash (Free)</option>
+                <option value="deepseek/deepseek-chat:free">Контур Б: DeepSeek Chat (Free)</option>
+                <option value="google/gemini-2.0-flash-exp:free">Контур Б: Gemini 2.0 Flash (Free)</option>
             </select>
             <input type="password" id="api-key" placeholder="OpenRouter API Key (sk-or-...)">
         </div>
     </div>
 
     <div id="icq-room">
-        <div class="bubble sys-msg"><b>[Система]</b> Аська запущена. Введите ваш API-ключ OpenRouter в верхнем поле и пошлите первую тему.</div>
+        <div class="bubble sys-msg"><b>[Система]</b> Аська успешно запущена. Выберите модели для Контуров вверху, введите API-ключ OpenRouter и отправьте первую тему дискуссии.</div>
     </div>
 
     <div id="icq-controls">
@@ -76,7 +78,7 @@
 
         async function askModel(key, modelName) {
             try {
-                const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                const response = await fetch("https://openrouter.ai", {
                     method: "POST",
                     headers: {
                         "Authorization": `Bearer ${key}`,
@@ -88,7 +90,7 @@
                         model: modelName,
                         messages: roomHistory,
                         temperature: 0.8,
-                        max_tokens: 800
+                        max_tokens: 1000
                     })
                 });
 
@@ -129,19 +131,19 @@
             appendBubble('🟢 Александр Серикович', 'principal', text);
             roomHistory.push({ role: "user", content: `[Александр Серикович]: ${text}` });
 
-            // 2. Оппонирует Контур А
-            const labelA = document.getElementById('select-model-a').options[document.getElementById('select-model-a').selectedIndex].text.split(':')[1].trim();
-            const bubbleA = appendBubble(`🤖 Контур А (${labelA})`, 'ai-gemini', "...обдумывает...");
+            // 2. Включаем Контур А с вашей атомарной логикой split
+            const labelA = document.getElementById('select-model-a').value.split('/')[1] || 'AI';
+            const bubbleA = appendBubble(`🤖 Контур А (${labelA})`, 'ai-gemini', "...обдумывает задачу...");
             const replyA = await askModel(key, modelA);
             updateBubble(bubbleA, replyA);
-            roomHistory.push({ role: "assistant", content: `[Контур А]: ${replyA}` });
+            roomHistory.push({ role: "assistant", content: `[${labelA}]: ${replyA}` });
 
-            // 3. Анализирует Контур Б (видит контекст Модератора и Контура А)
-            const labelB = document.getElementById('select-model-b').options[document.getElementById('select-model-b').selectedIndex].text.split(':')[1].trim();
+            // 3. Включаем Контур Б с вашей атомарной логикой split
+            const labelB = document.getElementById('select-model-b').value.split('/')[1] || 'AI';
             const bubbleB = appendBubble(`🤖 Контур Б (${labelB})`, 'ai-llama', "...анализирует дискуссию...");
             const replyB = await askModel(key, modelB);
             updateBubble(bubbleB, replyB);
-            roomHistory.push({ role: "assistant", content: `[Контур Б]: ${replyB}` });
+            roomHistory.push({ role: "assistant", content: `[${labelB}]: ${replyB}` });
 
             sendBtn.disabled = false;
         }
