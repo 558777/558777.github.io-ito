@@ -142,28 +142,28 @@
             appendBubble('🟢 Александр Серикович', 'principal', text);
             roomHistory.push({ role: "user", content: `[Александр Серикович]: ${text}` });
 
-            // 2. Включаем Контур А с применением фильтрации цензора
+            // 2. Включаем Контур А
             const labelA = modelA.split('/')[1]?.split(':')[0] || 'AI-A';
             const bubbleA = appendBubble(`🤖 Контур А (${labelA})`, 'ai-gemini', "...обдумывает...");
             
             let replyA = await askModel(key, modelA);
-            replyA = censor(replyA); // Тотальная зачистка на выводе
+            replyA = censor(replyA); 
             updateBubble(bubbleA, replyA);
             roomHistory.push({ role: "assistant", content: `[${labelA}]: ${replyA}` });
 
-            // 3. Включаем Контур Б с применением фильтрации цензора
+            // 3. Включаем Контур Б
             const labelB = modelB.split('/')[1]?.split(':')[0] || 'AI-B';
             const bubbleB = appendBubble(`🤖 Контур Б (${labelB})`, 'ai-llama', "...анализирует дискуссию...");
             
             let replyB = await askModel(key, modelB);
-            replyB = censor(replyB); // Тотальная зачистка на выводе
+            replyB = censor(replyB);
             updateBubble(bubbleB, replyB);
             roomHistory.push({ role: "assistant", content: `[${labelB}]: ${replyB}` });
 
             sendBtn.disabled = false;
         }
 
-        // Исправлено и закрыто корректно
+        // Слушатель клавиатуры
         document.getElementById('icq-input').addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
