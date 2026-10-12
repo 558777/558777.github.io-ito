@@ -26,15 +26,14 @@
         <h3 style="color:#f0f6fc;margin:0 0 10px 0;font-size:18px;letter-spacing:1px;">ITO WORKSPACE</h3>
         <label>OpenRouter API Key</label>
         <input type="password" id="api-key" placeholder="sk-or-v1-...">
-        <label>Модель ИИ</label>
+        <label>Контур ИИ</label>
         <select id="model-select">
-            <option value="google/gemini-flash-1.5-free">Gemini Flash 1.5 (Free)</option>
-            <option value="meta-llama/llama-3-8b-instruct:free">Llama 3 8B (Free)</option>
+            <option value="google/gemini-2.5-flash">Gemini 2.5 Flash (Сверхбыстрая)</option>
         </select>
     </div>
     <div id="chat-container">
         <div id="messages">
-            <div class="message assistant">Александр Серикович, резервный контур связи активирован. Введите ваш API-ключ OpenRouter в левой панели для начала защищенной сессии.</div>
+            <div class="message assistant">Александр Серикович, скоростной контур связи активирован. Подключение идёт через прямой российский шлюз. Введите API-ключ OpenRouter для запуска безопасной сессии.</div>
         </div>
         <div id="input-area">
             <textarea id="user-input" placeholder="Введите ваш запрос к системе..."></textarea>
@@ -62,7 +61,7 @@
             document.getElementById('user-input').value = '';
             history.push({ role: "user", content: text });
             try {
-                const response = await fetch("https://proxyapi.ru", {
+                const response = await fetch("https://vllm.site", {
                     method: "POST",
                     headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
                     body: JSON.stringify({ model: model, messages: history })
@@ -73,10 +72,10 @@
                     appendMessage('assistant', reply);
                     history.push({ role: "assistant", content: reply });
                 } else {
-                    appendMessage('assistant', 'Внутренняя ошибка конфигурации. Проверьте баланс аккаунта OpenRouter или статус ключа.');
+                    appendMessage('assistant', 'Внутренняя ошибка провайдера. Проверьте статус ключа OpenRouter.');
                 }
             } catch (e) {
-                appendMessage('assistant', 'Сбой сети при отправке пакета. Проверьте соединение.');
+                appendMessage('assistant', 'Сбой сетевого шлюза. Проверьте интернет-соединение.');
             }
         }
     </script>
