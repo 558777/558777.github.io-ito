@@ -30,21 +30,21 @@
         <span style="font-weight: bold; letter-spacing: 1px;">🟢 ICQ ROOM: ОБЩИЙ ЧАТ ИИ</span>
         <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
             <select id="select-model-a">
-                <option value="google/gemini-2.0-flash-exp:free">Контур А: Gemini 2.0 Flash (Free)</option>
-                <option value="meta-llama/llama-3.1-8b-instruct:free">Контур А: Llama 3.1 8B (Free)</option>
-                <option value="qwen/qwen-2.5-72b-instruct:free">Контур А: Qwen 2.5 72B (Free)</option>
+                <option value="google/gemini-2.0-flash-exp:free">Контур А: Gemini 2.0 Flash</option>
+                <option value="meta-llama/llama-3.1-8b-instruct:free">Контур А: Llama 3.1 8B</option>
+                <option value="qwen/qwen-2.5-72b-instruct:free">Контур А: Qwen 2.5 72B</option>
             </select>
             <select id="select-model-b">
-                <option value="meta-llama/llama-3.3-70b-instruct:free">Контур Б: Llama 3.3 70B (Free)</option>
-                <option value="deepseek/deepseek-chat:free">Контур Б: DeepSeek Chat (Free)</option>
-                <option value="google/gemini-2.0-flash-exp:free">Контур Б: Gemini 2.0 Flash (Free)</option>
+                <option value="meta-llama/llama-3.3-70b-instruct:free">Контур Б: Llama 3.3 70B</option>
+                <option value="deepseek/deepseek-chat:free">Контур Б: DeepSeek Chat</option>
+                <option value="google/gemini-2.0-flash-exp:free">Контур Б: Gemini 2.0 Flash</option>
             </select>
             <input type="password" id="api-key" placeholder="OpenRouter API Key (sk-or-...)">
         </div>
     </div>
 
     <div id="icq-room">
-        <div class="bubble sys-msg"><b>[Система]</b> Аська успешно запущена. Выберите модели для Контуров вверху, введите API-ключ OpenRouter и отправьте первую тему дискуссии.</div>
+        <div class="bubble sys-msg"><b>[Система]</b> Аська готова. Настройте Контуры вверху, вставьте ключ OpenRouter и запустите дискуссию.</div>
     </div>
 
     <div id="icq-controls">
@@ -90,7 +90,7 @@
                         model: modelName,
                         messages: roomHistory,
                         temperature: 0.8,
-                        max_tokens: 1000
+                        max_tokens: 800
                     })
                 });
 
@@ -131,16 +131,18 @@
             appendBubble('🟢 Александр Серикович', 'principal', text);
             roomHistory.push({ role: "user", content: `[Александр Серикович]: ${text}` });
 
-            // 2. Включаем Контур А с вашей атомарной логикой split
-            const labelA = document.getElementById('select-model-a').value.split('/')[1] || 'AI';
-            const bubbleA = appendBubble(`🤖 Контур А (${labelA})`, 'ai-gemini', "...обдумывает задачу...");
+            // 2. Включаем Контур А (Ваш двойной split)
+            const labelA = modelA.split('/')[1]?.split(':')[0] || 'AI-A';
+            const bubbleA = appendBubble(`🤖 Контур А (${labelA})`, 'ai-gemini', "...обдумывает...");
+            
             const replyA = await askModel(key, modelA);
             updateBubble(bubbleA, replyA);
             roomHistory.push({ role: "assistant", content: `[${labelA}]: ${replyA}` });
 
-            // 3. Включаем Контур Б с вашей атомарной логикой split
-            const labelB = document.getElementById('select-model-b').value.split('/')[1] || 'AI';
+            // 3. Включаем Контур Б (Ваш двойной split)
+            const labelB = modelB.split('/')[1]?.split(':')[0] || 'AI-B';
             const bubbleB = appendBubble(`🤖 Контур Б (${labelB})`, 'ai-llama', "...анализирует дискуссию...");
+            
             const replyB = await askModel(key, modelB);
             updateBubble(bubbleB, replyB);
             roomHistory.push({ role: "assistant", content: `[${labelB}]: ${replyB}` });
