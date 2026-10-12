@@ -55,8 +55,9 @@
     <script>
         const systemPrompt = `Ты — участник общего закрытого чата Александра Сериковича Жаманакова. 
 Твой ник в чате зависит от твоей модели. Общайся строго, концептуально, по делу, 
-без лишних AI-шаблонов и пустых фраз-филлеров. Учитывай реплики других ИИ в комнате, 
-спорь или дополняй их логику. Отвечай на русском языке.`;
+без лишних AI-шаблонов и пустых фраз-филлеров. 
+Категорически запрещено использовать слова: "симулякр", "рентгеном", "ландшафта", "трансграничной", "купеческого паритета", "на берегу".
+Учитывай реплики других ИИ в комнате, спорь или дополняй их логику. Отвечай на русском языке.`;
 
         let roomHistory = [{ role: "system", content: systemPrompt }];
 
@@ -83,7 +84,7 @@
                     headers: {
                         "Authorization": `Bearer ${key}`,
                         "Content-Type": "application/json",
-                        "HTTP-Referer": window.location.origin || "http://localhost",
+                        "HTTP-Referer": "http://localhost:8000",
                         "X-Title": "ICQ Multi-AI Room"
                     },
                     body: JSON.stringify({
@@ -100,10 +101,11 @@
                 }
 
                 const data = await response.json();
-                if (data.choices && data.choices[0] && data.choices[0].message) {
+                // Исправлено под ПК: точный путь к массиву ответов в объекте OpenRouter
+                if (data && data.choices && data.choices[0] && data.choices[0].message) {
                     return data.choices[0].message.content.trim();
                 }
-                return `[Неизвестная структура]: ${JSON.stringify(data).slice(0, 300)}`;
+                return `[Неизвестная структура JSON]: ${JSON.stringify(data).slice(0, 300)}`;
             } catch (e) {
                 console.error("Fetch error:", e);
                 return `[Сбой сети: ${e.message}]`;
@@ -131,7 +133,7 @@
             appendBubble('🟢 Александр Серикович', 'principal', text);
             roomHistory.push({ role: "user", content: `[Александр Серикович]: ${text}` });
 
-            // 2. Включаем Контур А (Ваш двойной split)
+            // 2. Включаем Контур А
             const labelA = modelA.split('/')[1]?.split(':')[0] || 'AI-A';
             const bubbleA = appendBubble(`🤖 Контур А (${labelA})`, 'ai-gemini', "...обдумывает...");
             
@@ -139,7 +141,7 @@
             updateBubble(bubbleA, replyA);
             roomHistory.push({ role: "assistant", content: `[${labelA}]: ${replyA}` });
 
-            // 3. Включаем Контур Б (Ваш двойной split)
+            // 3. Включаем Контур Б
             const labelB = modelB.split('/')[1]?.split(':')[0] || 'AI-B';
             const bubbleB = appendBubble(`🤖 Контур Б (${labelB})`, 'ai-llama', "...анализирует дискуссию...");
             
