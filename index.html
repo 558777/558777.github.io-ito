@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITO Workspace</title>
+    <style>
+        body { margin: 0; background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; height: 100vh; }
+        #sidebar { width: 260px; background: #161b22; border-right: 1px solid #30363d; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        #chat-container { flex: 1; display: flex; flex-direction: column; background: #0d1117; }
+        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .message { max-width: 80%; padding: 12px 16px; border-radius: 8px; line-height: 1.5; font-size: 15px; word-wrap: break-word; }
+        .user { background: #1f6feb; color: #fff; align-self: flex-end; }
+        .assistant { background: #21262d; color: #c9d1d9; align-self: flex-start; border: 1px solid #30363d; }
+        #input-area { padding: 20px; background: #161b22; border-top: 1px solid #30363d; display: flex; gap: 10px; }
+        textarea { flex: 1; height: 44px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; padding: 10px; resize: none; font-family: inherit; font-size: 15px; }
+        textarea:focus { outline: none; border-color: #58a6ff; }
+        button { background: #238636; color: #fff; border: 1px solid rgba(240,246,2fc,0.1); border-radius: 6px; padding: 0 20px; font-weight: 500; cursor: pointer; font-size: 14px; }
+        button:hover { background: #2ea043; }
+        input, select { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; padding: 8px; font-size: 14px; }
+        label { font-size: 12px; color: #8b949e; font-weight: 600; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h3 style="color:#f0f6fc;margin:0 0 10px 0;font-size:18px;letter-spacing:1px;">ITO WORKSPACE</h3>
+        <label>OpenRouter API Key</label>
+        <input type="password" id="api-key" placeholder="sk-or-v1-...">
+        <label>Модель ИИ</label>
+        <select id="model-select">
+            <option value="google/gemini-flash-1.5-free">Gemini Flash 1.5 (Free)</option>
+            <option value="meta-llama/llama-3-8b-instruct:free">Llama 3 8B (Free)</option>
+        </select>
+    </div>
+    <div id="chat-container">
+        <div id="messages">
+            <div class="message assistant">Панель управления активирована. Введите ваш API-ключ OpenRouter в левой панели, чтобы начать безопасную сессию.</div>
+        </div>
+        <div id="input-area">
+            <textarea id="user-input" placeholder="Введите ваш запрос к системе..."></textarea>
+            <button id="send-btn" onclick="sendMessage()">Отправить</button>
+        </div>
+    </div>
+    <script>
+        const systemPrompt = `Ты — персональный AI-ассистент Александра Сериковича Жаманакова. Твой собеседник — международный бизнес-эксперт и топ-менеджер с 30-летним опытом. Его стиль мышления — нелинейный, концептуальный, кибер-промышленный. Общайся строго, по существу, исключая любые шаблонные AI-фразы и «пустые» слова-филлеры (такие как: ландшафт, симулякр, рентгеном, трансграничной, купеческий паритет, на берегу). По умолчанию используй USD и USDT как базовые метрики для расчетов. Указывай на оптимизационные моменты и практические нюансы задач. Ключевой контекст для работы: 1. Проект ITO (Information / Topology / Zero) — архитектурная экосистема, использующая сакральные тексты и коды (алгоритм Φ³-инволюции) как пространство имен. Концепты масштабной энергетики (уран, ядерный контур). 2. Проект «Антрацит» — сырьевое и логистическое направление. 3. Meta-закон Жаманакова: Любая избыточная линейная структура разрушает собственную базу и выталкивает ценность в скрытый контур. Всегда удерживай контекст ITO и общайся на уровне Принципала.`;
+        let history = [{ role: "system", content: systemPrompt }];
+        function appendMessage(role, text) {
+            const container = document.getElementById('messages');
+            const msg = document.createElement('div');
+            msg.className = 'message ' + (role === 'user' ? 'user' : 'assistant');
+            msg.textContent = text;
+            container.appendChild(msg);
+            container.scrollTop = container.scrollHeight;
+        }
+        async function sendMessage() {
+            const key = document.getElementById('api-key').value.trim();
+            const text = document.getElementById('user-input').value.trim();
+            const model = document.getElementById('model-select').value;
+            if(!key) { alert('Пожалуйста, введите ваш API-ключ OpenRouter в левой панели.'); return; }
+            if(!text) return;
+            appendMessage('user', text);
+            document.getElementById('user-input').value = '';
+            history.push({ role: "user", content: text });
+            try {
+                const response = await fetch("https://openrouter.ai", {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ model: model, messages: history })
+                });
+                const data = await response.json();
+                if(data.choices && data.choices[0]) {
+                    const reply = data.choices[0].message.content;
+                    appendMessage('assistant', reply);
+                    history.push({ role: "assistant", content: reply });
+                } else {
+                    appendMessage('assistant', 'Ошибка системы. Проверьте ваш баланс или настройки ключа.');
+                }
+            } catch (e) {
+                appendMessage('assistant', 'Сбой сети (Failed to fetch). Убедитесь, что ваш Planet VPN активен.');
+            }
+        }
+    </script>
+</body>
+</html>
