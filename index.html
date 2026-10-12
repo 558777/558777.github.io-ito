@@ -152,6 +152,7 @@
             sendBtn.disabled = false;
         }
 
+        // Корректное закрытие функции-обработчика нажатия клавиш
         document.getElementById('icq-input').addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
